@@ -1,0 +1,1512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Wellspring">
+  <meta name="theme-color" content="#F2F2F7">
+  <title>Wellspring</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    /* ═══════════════════════════════════════════
+       DESIGN TOKENS
+    ═══════════════════════════════════════════ */
+    :root {
+      --bg:           #F2F2F7;
+      --bg2:          #FFFFFF;
+      --label:        #000000;
+      --label-2:      rgba(60,60,67,0.6);
+      --label-3:      rgba(60,60,67,0.3);
+      --fill:         rgba(120,120,128,0.2);
+      --fill-2:       rgba(120,120,128,0.16);
+      --fill-3:       rgba(118,118,128,0.12);
+      --separator:    rgba(60,60,67,0.29);
+      --brand:        #E8671A;
+      --brand-dk:     #CC5A14;
+      --brand-tint:   rgba(232,103,26,0.10);
+      --brand-tint2:  rgba(232,103,26,0.18);
+      --green:        #34C759;
+      --green-bg:     rgba(52,199,89,0.12);
+      --green-text:   #1A7A30;
+      --yellow:       #FF9500;
+      --yellow-bg:    rgba(255,149,0,0.12);
+      --yellow-text:  #9A5700;
+      --red:          #FF3B30;
+      --red-bg:       rgba(255,59,48,0.12);
+      --red-text:     #C0200F;
+    }
+
+    /* ═══════════════════════════════════════════
+       RESET & BASE
+    ═══════════════════════════════════════════ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      overflow: hidden;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif;
+      color: var(--label);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* ═══════════════════════════════════════════
+       APP SHELL — PAGES
+    ═══════════════════════════════════════════ */
+    .pages-wrap {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      bottom: calc(49px + env(safe-area-inset-bottom));
+    }
+    .page {
+      position: absolute;
+      inset: 0;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior-y: contain;
+      display: none;
+      background: var(--bg);
+    }
+    .page.active { display: block; }
+    .page-content { padding-bottom: 28px; }
+
+    /* ─── Sticky page nav bar ─── */
+    .page-nav {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: rgba(242,242,247,0.88);
+      backdrop-filter: saturate(180%) blur(24px);
+      -webkit-backdrop-filter: saturate(180%) blur(24px);
+      border-bottom: 0.5px solid var(--separator);
+      padding-top: env(safe-area-inset-top);
+      display: flex;
+      flex-direction: column;
+    }
+    .page-nav-bar {
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      gap: 8px;
+    }
+    .page-nav-title {
+      font-size: 17px;
+      font-weight: 600;
+      letter-spacing: -0.3px;
+      flex: 1;
+      text-align: center;
+    }
+    .page-nav-action {
+      font-size: 17px;
+      color: var(--brand);
+      background: none;
+      border: none;
+      font-family: inherit;
+      cursor: pointer;
+      padding: 0;
+      min-width: 44px;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+    .page-nav-action.right { justify-content: flex-end; }
+    .page-nav-action.left  { justify-content: flex-start; }
+
+    /* ─── Large title ─── */
+    .large-title-wrap {
+      padding: 8px 16px 18px;
+    }
+    .large-title {
+      font-size: 34px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      line-height: 1.15;
+      color: var(--label);
+    }
+    .large-title .brand {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      color: var(--brand);
+    }
+    .large-title-sub {
+      font-size: 15px;
+      color: var(--label-2);
+      margin-top: 5px;
+      letter-spacing: -0.1px;
+    }
+
+    /* ═══════════════════════════════════════════
+       BOTTOM TAB BAR
+    ═══════════════════════════════════════════ */
+    .tab-bar {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      padding-bottom: env(safe-area-inset-bottom);
+      background: rgba(242,242,247,0.88);
+      backdrop-filter: saturate(180%) blur(24px);
+      -webkit-backdrop-filter: saturate(180%) blur(24px);
+      border-top: 0.5px solid var(--separator);
+      display: flex;
+      z-index: 100;
+    }
+    .tab-item {
+      flex: 1;
+      height: 49px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      padding-top: 6px;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+      background: none;
+      border: none;
+      color: var(--label-2);
+      font-family: inherit;
+      transition: opacity 0.1s;
+    }
+    .tab-item:active { opacity: 0.5; }
+    .tab-item.active { color: var(--brand); }
+    .tab-icon { width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; }
+    .tab-icon svg { width: 24px; height: 24px; }
+    .tab-label { font-size: 10px; font-weight: 500; letter-spacing: 0.1px; }
+
+    /* ═══════════════════════════════════════════
+       BUTTONS
+    ═══════════════════════════════════════════ */
+    .btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      width: 100%;
+      min-height: 50px;
+      padding: 0 20px;
+      border-radius: 14px;
+      font-family: inherit;
+      font-size: 17px;
+      font-weight: 600;
+      letter-spacing: -0.2px;
+      cursor: pointer;
+      border: none;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+      transition: opacity 0.12s, transform 0.1s;
+    }
+    .btn:active { opacity: 0.72; transform: scale(0.98); }
+    .btn-primary  { background: var(--brand); color: white; }
+    .btn-tinted   { background: var(--brand-tint2); color: var(--brand); }
+    .btn-danger   { background: var(--red-bg); color: var(--red-text); }
+    .btn-inline   { width: auto; min-height: 36px; font-size: 15px; border-radius: 10px; padding: 0 16px; }
+    .btn:disabled { opacity: 0.32; pointer-events: none; }
+
+    /* ═══════════════════════════════════════════
+       CARDS & GROUPED SECTIONS
+    ═══════════════════════════════════════════ */
+    .group-header {
+      font-size: 13px;
+      font-weight: 400;
+      color: var(--label-2);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      padding: 0 20px 6px;
+      margin-top: 22px;
+    }
+    .group {
+      margin: 0 16px;
+    }
+    .ios-card {
+      background: var(--bg2);
+      border-radius: 12px;
+      overflow: hidden;
+      position: relative;
+    }
+    .ios-card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 12px;
+      border: 0.5px solid rgba(0,0,0,0.06);
+      pointer-events: none;
+    }
+    .ios-row {
+      display: flex;
+      align-items: center;
+      padding: 12px 16px;
+      min-height: 44px;
+      position: relative;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .ios-row:active { background: var(--fill-3); }
+    .ios-row + .ios-row::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 16px; right: 0;
+      height: 0.5px;
+      background: var(--separator);
+    }
+    .ios-row-icon {
+      width: 36px; height: 36px;
+      border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+      margin-right: 12px;
+    }
+    .ios-row-icon.orange { background: var(--brand-tint2); }
+    .ios-row-icon.blue   { background: rgba(0,122,255,0.12); }
+    .ios-row-icon.red    { background: var(--red-bg); }
+    .ios-row-body { flex: 1; }
+    .ios-row-label { font-size: 17px; letter-spacing: -0.2px; }
+    .ios-row-sub   { font-size: 13px; color: var(--label-2); margin-top: 1px; }
+    .ios-row-chevron { color: var(--label-3); font-size: 20px; font-weight: 300; margin-left: 4px; }
+    .group-footer {
+      font-size: 13px;
+      color: var(--label-2);
+      padding: 7px 20px 0;
+      line-height: 1.5;
+    }
+
+    /* ═══════════════════════════════════════════
+       EMPTY STATE
+    ═══════════════════════════════════════════ */
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 72px 32px 32px;
+    }
+    .empty-icon { font-size: 60px; margin-bottom: 20px; }
+    .empty-title { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 10px; line-height: 1.3; }
+    .empty-body  { font-size: 15px; color: var(--label-2); line-height: 1.55; max-width: 270px; margin-bottom: 28px; }
+
+    /* ═══════════════════════════════════════════
+       DASHBOARD — SIGNALS
+    ═══════════════════════════════════════════ */
+    .signals-wrap { margin: 0 16px 14px; }
+    .signals-card {
+      background: var(--bg2);
+      border-radius: 14px;
+      overflow: hidden;
+      position: relative;
+    }
+    .signals-card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 14px;
+      border: 0.5px solid rgba(0,0,0,0.06);
+      pointer-events: none;
+    }
+    .signals-hdr {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 14px 8px;
+      border-bottom: 0.5px solid var(--separator);
+    }
+    .signals-hdr-title {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--label-2);
+    }
+    .month-chip {
+      background: var(--brand-tint2);
+      color: var(--brand);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 99px;
+    }
+    .signal-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 10px 14px;
+      position: relative;
+    }
+    .signal-row + .signal-row::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 36px; right: 0;
+      height: 0.5px;
+      background: var(--separator);
+    }
+    .signal-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      margin-top: 5px;
+      flex-shrink: 0;
+    }
+    .signal-row.critical .signal-dot { background: var(--red); }
+    .signal-row.warning  .signal-dot { background: var(--yellow); }
+    .signal-row.good     .signal-dot { background: var(--green); }
+    .signal-text { font-size: 14px; color: var(--label); line-height: 1.4; }
+
+    /* ═══════════════════════════════════════════
+       DASHBOARD — FACET GRID
+    ═══════════════════════════════════════════ */
+    .facet-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      padding: 0 16px;
+      margin-bottom: 14px;
+    }
+    .facet-card {
+      background: var(--bg2);
+      border-radius: 16px;
+      padding: 14px 14px 12px;
+      position: relative;
+      overflow: hidden;
+    }
+    .facet-card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 16px;
+      border: 0.5px solid rgba(0,0,0,0.06);
+      pointer-events: none;
+    }
+    .facet-accent {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--brand);
+      margin-bottom: 9px;
+    }
+    .facet-card.flag-warning .facet-accent { background: var(--yellow); }
+    .facet-card.flag-critical .facet-accent { background: var(--red); }
+    .facet-card.flag-good .facet-accent { background: var(--green); }
+    .facet-lbl {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--label-2);
+      letter-spacing: 0.2px;
+      margin-bottom: 3px;
+    }
+    .facet-score-row { display: flex; align-items: baseline; gap: 2px; margin-bottom: 5px; }
+    .facet-score {
+      font-size: 38px;
+      font-weight: 700;
+      letter-spacing: -1.5px;
+      color: var(--label);
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+    }
+    .facet-denom { font-size: 13px; color: var(--label-3); letter-spacing: -0.2px; }
+    .facet-trend {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--label-2);
+      margin-bottom: 9px;
+    }
+    .facet-trend.up   { color: var(--green); }
+    .facet-trend.down { color: var(--red); }
+    .facet-bar { height: 3px; background: var(--fill-3); border-radius: 99px; overflow: hidden; }
+    .facet-bar-fill {
+      height: 100%;
+      background: var(--brand);
+      border-radius: 99px;
+      transition: width 0.9s cubic-bezier(0.4,0,0.2,1);
+    }
+    .facet-card.flag-warning .facet-bar-fill  { background: var(--yellow); }
+    .facet-card.flag-critical .facet-bar-fill { background: var(--red); }
+    .facet-card.flag-good .facet-bar-fill     { background: var(--green); }
+    .facet-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      font-size: 10px;
+      font-weight: 600;
+      margin-top: 8px;
+      padding: 2px 8px;
+      border-radius: 99px;
+    }
+    .facet-badge.warning  { background: var(--yellow-bg); color: var(--yellow-text); }
+    .facet-badge.critical { background: var(--red-bg);    color: var(--red-text); }
+    .facet-badge.good     { background: var(--green-bg);  color: var(--green-text); }
+
+    /* ═══════════════════════════════════════════
+       CHECK-IN FORM
+    ═══════════════════════════════════════════ */
+    .checkin-notice {
+      margin: 0 16px 10px;
+      background: var(--green-bg);
+      border-radius: 12px;
+      padding: 11px 14px;
+      font-size: 14px;
+      color: var(--green-text);
+      font-weight: 500;
+    }
+    .facet-section {
+      background: var(--bg2);
+      border-radius: 16px;
+      margin: 0 16px 10px;
+      overflow: hidden;
+      position: relative;
+    }
+    .facet-section::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 16px;
+      border: 0.5px solid rgba(0,0,0,0.06);
+      pointer-events: none;
+    }
+    .facet-section-hdr {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      padding: 13px 16px;
+      border-bottom: 0.5px solid var(--separator);
+    }
+    .facet-section-icon { font-size: 20px; }
+    .facet-section-name {
+      font-size: 17px;
+      font-weight: 600;
+      letter-spacing: -0.3px;
+    }
+    .facet-section-body { padding: 16px; }
+
+    /* ─── Slider ─── */
+    .slider-wrap { margin-bottom: 20px; }
+    .slider-hdr {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 14px;
+    }
+    .slider-lbl {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--label-2);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .slider-val {
+      font-size: 30px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      color: var(--brand);
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+    }
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 4px;
+      background: var(--fill-3);
+      border-radius: 99px;
+      outline: none;
+      cursor: pointer;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: white;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.22), 0 0 0 0.5px rgba(0,0,0,0.08);
+      transition: transform 0.12s;
+    }
+    input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.18); }
+    .slider-ends {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 7px;
+    }
+    .slider-end { font-size: 11px; color: var(--label-3); letter-spacing: -0.1px; }
+
+    /* ─── Tags ─── */
+    .field-lbl {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--label-2);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 10px;
+    }
+    .tags-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin-bottom: 18px;
+    }
+    .tag-chip {
+      background: var(--fill-3);
+      color: var(--label);
+      font-size: 14px;
+      font-weight: 500;
+      padding: 6px 13px;
+      border-radius: 99px;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+      border: none;
+      font-family: inherit;
+      transition: background 0.12s, color 0.12s;
+    }
+    .tag-chip:active { opacity: 0.6; }
+    .tag-chip.selected { background: var(--brand); color: white; }
+
+    /* ─── Textarea ─── */
+    textarea {
+      width: 100%;
+      background: var(--fill-3);
+      border: none;
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-family: inherit;
+      font-size: 15px;
+      color: var(--label);
+      resize: none;
+      min-height: 90px;
+      outline: none;
+      -webkit-appearance: none;
+      line-height: 1.55;
+      transition: background 0.15s, box-shadow 0.15s;
+    }
+    textarea::placeholder { color: var(--label-3); }
+    textarea:focus { background: var(--bg2); box-shadow: 0 0 0 2px var(--brand-tint2); }
+
+    /* ─── Form actions ─── */
+    .form-actions {
+      padding: 6px 16px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    /* ═══════════════════════════════════════════
+       HISTORY
+    ═══════════════════════════════════════════ */
+    .chart-card {
+      background: var(--bg2);
+      border-radius: 16px;
+      padding: 14px 14px 10px;
+      margin: 0 16px 12px;
+      position: relative;
+    }
+    .chart-card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 16px;
+      border: 0.5px solid rgba(0,0,0,0.06);
+      pointer-events: none;
+    }
+    .chart-card-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--label-2);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 12px;
+    }
+    .chart-container { position: relative; height: 240px; }
+    .table-card {
+      background: var(--bg2);
+      border-radius: 16px;
+      margin: 0 16px 12px;
+      overflow: hidden;
+      position: relative;
+    }
+    .table-card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 16px;
+      border: 0.5px solid rgba(0,0,0,0.06);
+      pointer-events: none;
+    }
+    .table-card-hdr {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--label-2);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 13px 14px 9px;
+      border-bottom: 0.5px solid var(--separator);
+    }
+    .history-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .history-table th {
+      background: var(--bg);
+      color: var(--label-2);
+      font-weight: 600;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 7px 8px;
+      text-align: left;
+      border-bottom: 0.5px solid var(--separator);
+      white-space: nowrap;
+    }
+    .history-table td {
+      padding: 8px 8px;
+      border-bottom: 0.5px solid var(--separator);
+    }
+    .history-table tr:last-child td { border-bottom: none; }
+    .score-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 26px;
+      height: 20px;
+      border-radius: 5px;
+      font-size: 11px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+    .score-high { background: var(--green-bg);  color: var(--green-text); }
+    .score-mid  { background: var(--brand-tint); color: var(--brand); }
+    .score-low  { background: var(--red-bg);     color: var(--red-text); }
+
+    /* ═══════════════════════════════════════════
+       EXPORT
+    ═══════════════════════════════════════════ */
+    .stat-row {
+      display: flex;
+      align-items: baseline;
+      gap: 7px;
+      padding: 14px 16px 4px;
+    }
+    .stat-num {
+      font-size: 30px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      color: var(--brand);
+      font-family: 'Playfair Display', serif;
+    }
+    .stat-lbl { font-size: 15px; color: var(--label-2); }
+
+    /* ═══════════════════════════════════════════
+       TOAST
+    ═══════════════════════════════════════════ */
+    .toast {
+      position: fixed;
+      bottom: calc(49px + env(safe-area-inset-bottom) + 14px);
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: rgba(36,36,38,0.9);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      color: white;
+      padding: 11px 20px;
+      border-radius: 99px;
+      font-size: 15px;
+      font-weight: 500;
+      z-index: 999;
+      opacity: 0;
+      transition: opacity 0.25s, transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
+      white-space: nowrap;
+      pointer-events: none;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* ═══════════════════════════════════════════
+       DESKTOP CENTERING
+    ═══════════════════════════════════════════ */
+    @media (min-width: 600px) {
+      body { background: #C7C7CC; display: flex; align-items: center; justify-content: center; }
+      .pages-wrap { position: relative; width: 390px; height: 844px; max-height: 100vh; flex-shrink: 0; border-radius: 46px; overflow: hidden; box-shadow: 0 60px 120px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,255,255,0.12) inset; }
+      .page { border-radius: 0; }
+      .tab-bar { position: absolute; bottom: 0; left: 0; right: 0; border-radius: 0 0 46px 46px; overflow: hidden; }
+      .toast { position: absolute; }
+    }
+
+    /* ─── input[file] hidden ─── */
+    input[type="file"] { display: none; }
+  </style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════
+     PAGES
+════════════════════════════════════ -->
+<div class="pages-wrap">
+
+  <!-- ── DASHBOARD ── -->
+  <div id="tab-dashboard" class="page active">
+    <div class="page-content">
+      <div class="page-nav">
+        <div class="page-nav-bar">
+          <div style="min-width:80px;">
+            <span style="font-family:'Playfair Display',serif;font-style:italic;font-size:20px;color:var(--brand);letter-spacing:-0.3px;">Wellspring</span>
+          </div>
+          <span class="page-nav-title" style="font-size:15px;font-weight:500;color:var(--label-2);">Wellness Tracker</span>
+          <div style="min-width:80px;display:flex;justify-content:flex-end;">
+            <button class="page-nav-action right btn-inline" style="background:var(--brand-tint2);color:var(--brand);border-radius:99px;font-size:14px;font-weight:600;padding:0 12px;min-height:30px;height:30px;" onclick="showTab('checkin')">Check-in</button>
+          </div>
+        </div>
+      </div>
+      <div id="dashboard-content"></div>
+    </div>
+  </div>
+
+  <!-- ── CHECK-IN ── -->
+  <div id="tab-checkin" class="page">
+    <div class="page-content">
+      <div class="page-nav">
+        <div class="page-nav-bar">
+          <button class="page-nav-action left" onclick="showTab('dashboard')" style="font-size:16px;gap:3px;">
+            <svg width="9" height="15" viewBox="0 0 9 15" fill="none"><path d="M8 1L1.5 7.5L8 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Back
+          </button>
+          <span class="page-nav-title">Check-in</span>
+          <div style="min-width:60px;"></div>
+        </div>
+      </div>
+      <div id="checkin-content"></div>
+    </div>
+  </div>
+
+  <!-- ── HISTORY ── -->
+  <div id="tab-history" class="page">
+    <div class="page-content">
+      <div class="page-nav">
+        <div class="page-nav-bar">
+          <span class="page-nav-title">History</span>
+        </div>
+      </div>
+      <div id="history-content"></div>
+    </div>
+  </div>
+
+  <!-- ── EXPORT ── -->
+  <div id="tab-export" class="page">
+    <div class="page-content">
+      <div class="page-nav">
+        <div class="page-nav-bar">
+          <span class="page-nav-title">Data & Export</span>
+        </div>
+      </div>
+      <div id="export-content"></div>
+    </div>
+  </div>
+
+</div><!-- /.pages-wrap -->
+
+<!-- ════════════════════════════════════
+     BOTTOM TAB BAR
+════════════════════════════════════ -->
+<nav class="tab-bar">
+  <button class="tab-item active" onclick="showTab('dashboard', this)">
+    <div class="tab-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+        <polyline points="9 22 9 12 15 12 15 22"/>
+      </svg>
+    </div>
+    <span class="tab-label">Home</span>
+  </button>
+  <button class="tab-item" onclick="showTab('checkin', this)">
+    <div class="tab-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+        <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+      </svg>
+    </div>
+    <span class="tab-label">Check-in</span>
+  </button>
+  <button class="tab-item" onclick="showTab('history', this)">
+    <div class="tab-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+      </svg>
+    </div>
+    <span class="tab-label">History</span>
+  </button>
+  <button class="tab-item" onclick="showTab('export', this)">
+    <div class="tab-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/>
+        <polyline points="16 6 12 2 8 6"/>
+        <line x1="12" y1="2" x2="12" y2="15"/>
+      </svg>
+    </div>
+    <span class="tab-label">Export</span>
+  </button>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ════════════════════════════════════════════════
+//  PWA SETUP
+// ════════════════════════════════════════════════
+(function initPWA() {
+  // Generate canvas icon (water drop on orange)
+  try {
+    const cv = document.createElement('canvas');
+    cv.width = cv.height = 180;
+    const ctx = cv.getContext('2d');
+    ctx.fillStyle = '#E8671A';
+    ctx.beginPath();
+    const r = 38;
+    ctx.moveTo(r, 0); ctx.lineTo(180-r, 0); ctx.quadraticCurveTo(180, 0, 180, r);
+    ctx.lineTo(180, 180-r); ctx.quadraticCurveTo(180, 180, 180-r, 180);
+    ctx.lineTo(r, 180); ctx.quadraticCurveTo(0, 180, 0, 180-r);
+    ctx.lineTo(0, r); ctx.quadraticCurveTo(0, 0, r, 0);
+    ctx.closePath(); ctx.fill();
+    // Water drop
+    ctx.fillStyle = 'rgba(255,255,255,0.95)';
+    ctx.beginPath();
+    ctx.moveTo(90, 36);
+    ctx.bezierCurveTo(90, 36, 50, 78, 50, 108);
+    ctx.arc(90, 108, 40, Math.PI, 0);
+    ctx.bezierCurveTo(130, 78, 90, 36, 90, 36);
+    ctx.fill();
+    const iconUrl = cv.toDataURL('image/png');
+
+    // Touch icon
+    const li = document.createElement('link');
+    li.rel = 'apple-touch-icon'; li.href = iconUrl;
+    document.head.appendChild(li);
+
+    // Manifest blob
+    const manifest = {
+      name: 'Wellspring', short_name: 'Wellspring',
+      description: 'Personal wellness tracker',
+      start_url: './', display: 'standalone',
+      background_color: '#F2F2F7', theme_color: '#E8671A',
+      orientation: 'portrait-primary',
+      icons: [{ src: iconUrl, sizes: '180x180', type: 'image/png' }]
+    };
+    const mLink = document.createElement('link');
+    mLink.rel = 'manifest';
+    mLink.href = URL.createObjectURL(new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' }));
+    document.head.appendChild(mLink);
+  } catch(e) { /* graceful failure */ }
+
+  // Register service worker (create sw.js in same folder for offline support)
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  }
+})();
+
+// ════════════════════════════════════════════════
+//  CONFIG
+// ════════════════════════════════════════════════
+const FACETS = [
+  { id: 'emotional',     name: 'Emotional',    icon: '💛' },
+  { id: 'environmental', name: 'Environmental', icon: '🌿' },
+  { id: 'financial',     name: 'Financial',     icon: '💰' },
+  { id: 'intellectual',  name: 'Intellectual',  icon: '📚' },
+  { id: 'occupational',  name: 'Occupational',  icon: '💼' },
+  { id: 'physical',      name: 'Physical',      icon: '⚡' },
+  { id: 'social',        name: 'Social',        icon: '🤝' },
+];
+
+const PRESET_TAGS = {
+  emotional:     ['gratitude','joy','stress','anxiety','grief','burnout','content','overwhelmed','hopeful'],
+  environmental: ['clean space','clutter','outdoors','nature','home improvement','weather','moved','garden'],
+  financial:     ['budget on track','savings win','overspending','unexpected expense','debt','investment','raise','job loss'],
+  intellectual:  ['reading','learning','creativity','problem solving','podcast','course','stagnant','inspired'],
+  occupational:  ['productive','flow state','project win','work stress','conflict','burned out','job change','promotion'],
+  physical:      ['strong','good sleep','exercise','energy low','illness','injury','nutrition win','rest'],
+  social:        ['deep connection','quality time','friendship','community','loneliness','conflict','isolation','new people'],
+};
+
+const FACET_COLORS = {
+  emotional: '#E8671A', environmental: '#2E7D32', financial: '#1565C0',
+  intellectual: '#6A1B9A', occupational: '#AD1457', physical: '#00695C', social: '#F57F17',
+};
+
+const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const STORAGE_KEY = 'wellspring_v1';
+
+// ════════════════════════════════════════════════
+//  STORAGE
+// ════════════════════════════════════════════════
+function loadData() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return { checkins: [], customTags: {} };
+    const d = JSON.parse(raw);
+    if (!d.checkins) d.checkins = [];
+    if (!d.customTags) d.customTags = {};
+    return d;
+  } catch { return { checkins: [], customTags: {} }; }
+}
+function saveData(data) { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
+function getCheckins() { return loadData().checkins; }
+function getCurrentKey() {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+}
+function getCheckinByKey(key) { return getCheckins().find(c => c.id === key) || null; }
+function saveCheckin(checkin) {
+  const data = loadData();
+  const idx = data.checkins.findIndex(c => c.id === checkin.id);
+  if (idx >= 0) data.checkins[idx] = checkin;
+  else { data.checkins.push(checkin); data.checkins.sort((a, b) => a.id.localeCompare(b.id)); }
+  saveData(data);
+}
+function getTagsForFacet(facetId) {
+  const data = loadData();
+  const custom = (data.customTags && data.customTags[facetId]) ? data.customTags[facetId] : [];
+  return [...(PRESET_TAGS[facetId] || []), ...custom];
+}
+
+// ════════════════════════════════════════════════
+//  FLAGGING
+// ════════════════════════════════════════════════
+function getFlags(checkins) {
+  if (checkins.length === 0) return [];
+  const flags = [];
+  const latest = checkins[checkins.length - 1];
+  const prev   = checkins.length >= 2 ? checkins[checkins.length - 2] : null;
+  const prev2  = checkins.length >= 3 ? checkins[checkins.length - 3] : null;
+
+  FACETS.forEach(f => {
+    const curr = latest.scores[f.id];
+    if (curr <= 3) {
+      flags.push({ facet: f.id, facetName: f.name, type: 'low',
+        severity: curr <= 2 ? 'critical' : 'warning',
+        message: `${f.name} is at a low score of ${curr}/10` });
+    }
+    if (prev) {
+      const p = prev.scores[f.id];
+      const diff = curr - p;
+      if (diff <= -2) {
+        flags.push({ facet: f.id, facetName: f.name, type: 'decline',
+          severity: diff <= -4 ? 'critical' : 'warning',
+          message: `${f.name} dropped ${Math.abs(diff)} point${Math.abs(diff) !== 1 ? 's' : ''} from last month` });
+      }
+      if (prev2) {
+        const p2 = prev2.scores[f.id];
+        if (curr < p && p < p2 && !flags.some(x => x.facet === f.id && x.type === 'decline')) {
+          flags.push({ facet: f.id, facetName: f.name, type: 'trend',
+            severity: 'critical',
+            message: `${f.name} has declined for 3 consecutive months` });
+        }
+      }
+    }
+  });
+  return flags;
+}
+
+function getFacetSeverity(facetId, flags, latestScores) {
+  const ff = flags.filter(f => f.facet === facetId);
+  if (ff.some(f => f.severity === 'critical')) return 'critical';
+  if (ff.some(f => f.severity === 'warning'))  return 'warning';
+  if (latestScores && latestScores[facetId] >= 8) return 'good';
+  return null;
+}
+
+// ════════════════════════════════════════════════
+//  HELPERS
+// ════════════════════════════════════════════════
+function formatKey(key) {
+  const [y, m] = key.split('-');
+  return `${MONTH_NAMES[parseInt(m) - 1]} ${y}`;
+}
+function scoreClass(s) {
+  if (s >= 8) return 'score-high';
+  if (s >= 5) return 'score-mid';
+  return 'score-low';
+}
+function showToast(msg, ms = 3000) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), ms);
+}
+
+// ════════════════════════════════════════════════
+//  TAB NAVIGATION
+// ════════════════════════════════════════════════
+function showTab(name, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-item').forEach(b => b.classList.remove('active'));
+
+  const page = document.getElementById(`tab-${name}`);
+  page.classList.add('active');
+  page.scrollTop = 0;
+
+  if (btn) {
+    btn.classList.add('active');
+  } else {
+    const tabs = ['dashboard','checkin','history','export'];
+    const buttons = document.querySelectorAll('.tab-item');
+    const idx = tabs.indexOf(name);
+    if (buttons[idx]) buttons[idx].classList.add('active');
+  }
+  renderTab(name);
+}
+
+function renderTab(name) {
+  if (name === 'dashboard') renderDashboard();
+  if (name === 'checkin')   renderCheckin();
+  if (name === 'history')   renderHistory();
+  if (name === 'export')    renderExport();
+}
+
+// ════════════════════════════════════════════════
+//  DASHBOARD
+// ════════════════════════════════════════════════
+function renderDashboard() {
+  const el = document.getElementById('dashboard-content');
+  const checkins = getCheckins();
+
+  if (checkins.length === 0) {
+    el.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">💧</div>
+        <div class="empty-title">Welcome to<br><span style="font-family:'Playfair Display',serif;font-style:italic;color:var(--brand)">Wellspring</span></div>
+        <div class="empty-body">Track your wellness across seven areas of life, one month at a time.</div>
+        <button class="btn btn-primary" style="max-width:260px;" onclick="showTab('checkin')">Begin First Check-in</button>
+      </div>
+    `;
+    return;
+  }
+
+  const checkin  = checkins[checkins.length - 1];
+  const prevCI   = checkins.length >= 2 ? checkins[checkins.length - 2] : null;
+  const flags    = getFlags(checkins);
+  const now      = new Date();
+  const curKey   = getCurrentKey();
+  const isLatest = checkin.id === curKey;
+  const positiveFlags = FACETS.filter(f => checkin.scores[f.id] >= 8 && !flags.some(fl => fl.facet === f.id));
+
+  let html = `
+    <div class="large-title-wrap">
+      <div class="large-title">Your <span class="brand">Wellbeing</span></div>
+      <div class="large-title-sub">${formatKey(checkin.id)}${!isLatest ? ` · No ${MONTH_NAMES[now.getMonth()]} check-in yet` : ''}</div>
+    </div>
+  `;
+
+  // Signals
+  if (flags.length > 0 || positiveFlags.length > 0) {
+    html += `
+      <div class="signals-wrap">
+        <div class="signals-card">
+          <div class="signals-hdr">
+            <span class="signals-hdr-title">Signals</span>
+            <span class="month-chip">${formatKey(checkin.id)}</span>
+          </div>
+    `;
+    flags.forEach(f => {
+      html += `<div class="signal-row ${f.severity}"><div class="signal-dot"></div><span class="signal-text">${f.message}</span></div>`;
+    });
+    positiveFlags.forEach(f => {
+      html += `<div class="signal-row good"><div class="signal-dot"></div><span class="signal-text">${f.name} is thriving at ${checkin.scores[f.id]}/10</span></div>`;
+    });
+    html += `</div></div>`;
+  }
+
+  // Facet grid
+  html += `<div class="facet-grid">`;
+  FACETS.forEach(f => {
+    const score     = checkin.scores[f.id];
+    const prevScore = prevCI ? prevCI.scores[f.id] : null;
+    const diff      = prevScore !== null ? score - prevScore : null;
+    const severity  = getFacetSeverity(f.id, flags, checkin.scores);
+
+    let trendHtml = '';
+    if (diff !== null) {
+      if (diff > 0)      trendHtml = `<div class="facet-trend up">↑ +${diff} from ${MONTH_NAMES[parseInt(prevCI.id.split('-')[1]) - 1].slice(0,3)}</div>`;
+      else if (diff < 0) trendHtml = `<div class="facet-trend down">↓ ${diff} from ${MONTH_NAMES[parseInt(prevCI.id.split('-')[1]) - 1].slice(0,3)}</div>`;
+      else               trendHtml = `<div class="facet-trend">→ No change</div>`;
+    } else {
+      trendHtml = `<div class="facet-trend">First entry</div>`;
+    }
+
+    let badgeHtml = '';
+    if (severity === 'critical') badgeHtml = `<div class="facet-badge critical">Needs attention</div>`;
+    else if (severity === 'warning') badgeHtml = `<div class="facet-badge warning">Watch this</div>`;
+    else if (severity === 'good')    badgeHtml = `<div class="facet-badge good">Thriving</div>`;
+
+    html += `
+      <div class="facet-card ${severity ? 'flag-' + severity : ''}">
+        <div class="facet-accent"></div>
+        <div class="facet-lbl">${f.icon} ${f.name}</div>
+        <div class="facet-score-row">
+          <span class="facet-score">${score}</span>
+          <span class="facet-denom">/10</span>
+        </div>
+        ${trendHtml}
+        <div class="facet-bar"><div class="facet-bar-fill" style="width:${score * 10}%"></div></div>
+        ${badgeHtml}
+      </div>
+    `;
+  });
+  html += `</div>`;
+
+  if (!isLatest) {
+    html += `
+      <div style="padding:8px 16px 0;">
+        <button class="btn btn-primary" onclick="showTab('checkin')">Complete ${MONTH_NAMES[now.getMonth()]} Check-in →</button>
+      </div>
+    `;
+  }
+
+  el.innerHTML = html;
+}
+
+// ════════════════════════════════════════════════
+//  CHECK-IN
+// ════════════════════════════════════════════════
+let formState = {};
+
+function initForm(existing) {
+  formState = {};
+  FACETS.forEach(f => {
+    formState[f.id] = {
+      score: existing ? (existing.scores[f.id] ?? 5) : 5,
+      notes: existing ? (existing.notes[f.id] ?? '') : '',
+      tags:  existing ? ([...(existing.tags[f.id] ?? [])]) : [],
+    };
+  });
+}
+
+function renderCheckin() {
+  const el       = document.getElementById('checkin-content');
+  const curKey   = getCurrentKey();
+  const existing = getCheckinByKey(curKey);
+  const now      = new Date();
+  initForm(existing);
+
+  let html = `
+    <div class="large-title-wrap">
+      <div class="large-title">${MONTH_NAMES[now.getMonth()]} <span class="brand">${existing ? 'Update' : 'Check-in'}</span></div>
+      <div class="large-title-sub">${existing
+        ? `Editing your ${formatKey(curKey)} entry.`
+        : `Rate each area of your wellbeing for ${MONTH_NAMES[now.getMonth()]} ${now.getFullYear()}.`}</div>
+    </div>
+    ${existing ? `<div class="checkin-notice">✓ Already checked in for ${formatKey(curKey)}. Saving will update your entry.</div>` : ''}
+  `;
+
+  FACETS.forEach(f => {
+    const state = formState[f.id];
+    const tags  = getTagsForFacet(f.id);
+
+    html += `
+      <div class="facet-section" id="fs-${f.id}">
+        <div class="facet-section-hdr">
+          <span class="facet-section-icon">${f.icon}</span>
+          <span class="facet-section-name">${f.name}</span>
+        </div>
+        <div class="facet-section-body">
+          <div class="slider-wrap">
+            <div class="slider-hdr">
+              <span class="slider-lbl">Score</span>
+              <span class="slider-val" id="val-${f.id}">${state.score}</span>
+            </div>
+            <input type="range" min="1" max="10" value="${state.score}"
+              id="slider-${f.id}" oninput="onSlider('${f.id}', this.value)">
+            <div class="slider-ends">
+              <span class="slider-end">1 — Struggling</span>
+              <span class="slider-end">10 — Thriving</span>
+            </div>
+          </div>
+          <div class="field-lbl">Tags</div>
+          <div class="tags-wrap" id="tags-wrap-${f.id}">
+            ${tags.map(tag => `<button class="tag-chip ${state.tags.includes(tag) ? 'selected' : ''}" onclick="toggleTag('${f.id}', this, '${tag.replace(/'/g,"\\'")}'">${tag}</button>`).join('')}
+          </div>
+          <div class="field-lbl">Notes</div>
+          <textarea id="notes-${f.id}"
+            placeholder="How has your ${f.name.toLowerCase()} wellbeing been this month?"
+            oninput="formState['${f.id}'].notes = this.value">${state.notes}</textarea>
+        </div>
+      </div>
+    `;
+  });
+
+  html += `
+    <div class="form-actions">
+      <button class="btn btn-primary" onclick="submitCheckin()">${existing ? 'Update Check-in' : 'Save Check-in'}</button>
+      <button class="btn btn-tinted" onclick="showTab('dashboard')">Cancel</button>
+    </div>
+  `;
+  el.innerHTML = html;
+}
+
+function onSlider(facetId, val) {
+  formState[facetId].score = parseInt(val);
+  document.getElementById(`val-${facetId}`).textContent = val;
+}
+
+function toggleTag(facetId, el, tag) {
+  const tags = formState[facetId].tags;
+  const idx  = tags.indexOf(tag);
+  if (idx >= 0) { tags.splice(idx, 1); el.classList.remove('selected'); }
+  else           { tags.push(tag);     el.classList.add('selected'); }
+}
+
+function submitCheckin() {
+  const now    = new Date();
+  const curKey = getCurrentKey();
+  const checkin = {
+    id: curKey, year: now.getFullYear(), month: now.getMonth() + 1,
+    timestamp: now.toISOString(),
+    scores: {}, notes: {}, tags: {},
+  };
+  FACETS.forEach(f => {
+    checkin.scores[f.id] = formState[f.id].score;
+    checkin.notes[f.id]  = formState[f.id].notes;
+    checkin.tags[f.id]   = formState[f.id].tags;
+  });
+  saveCheckin(checkin);
+  showToast('✓ Check-in saved');
+  showTab('dashboard');
+}
+
+// ════════════════════════════════════════════════
+//  HISTORY
+// ════════════════════════════════════════════════
+let historyChart = null;
+
+function renderHistory() {
+  const el       = document.getElementById('history-content');
+  const checkins = getCheckins();
+
+  if (checkins.length === 0) {
+    el.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">📈</div>
+        <div class="empty-title">No History Yet</div>
+        <div class="empty-body">Complete your first check-in to start tracking trends over time.</div>
+        <button class="btn btn-primary" style="max-width:260px;" onclick="showTab('checkin')">Start First Check-in</button>
+      </div>
+    `;
+    return;
+  }
+
+  const labels = checkins.map(c => {
+    const [y, m] = c.id.split('-');
+    return `${MONTH_NAMES[parseInt(m) - 1].slice(0, 3)} '${y.slice(2)}`;
+  });
+
+  let html = `
+    <div class="large-title-wrap">
+      <div class="large-title">History & <span class="brand">Trends</span></div>
+      <div class="large-title-sub">${checkins.length} check-in${checkins.length !== 1 ? 's' : ''} · Tap legend to show/hide</div>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-card-title">All Facets Over Time</div>
+      <div class="chart-container"><canvas id="mainChart"></canvas></div>
+    </div>
+
+    <div class="table-card">
+      <div class="table-card-hdr">Month-by-Month Scores</div>
+      <div style="overflow-x:auto;">
+        <table class="history-table">
+          <thead>
+            <tr>
+              <th>Month</th>
+              ${FACETS.map(f => `<th>${f.icon}</th>`).join('')}
+            </tr>
+          </thead>
+          <tbody>
+            ${[...checkins].reverse().map(c => `
+              <tr>
+                <td style="font-weight:600;white-space:nowrap;color:var(--label-2);font-size:12px;">${formatKey(c.id)}</td>
+                ${FACETS.map(f => `<td><span class="score-pill ${scoreClass(c.scores[f.id])}">${c.scores[f.id]}</span></td>`).join('')}
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+
+  el.innerHTML = html;
+
+  requestAnimationFrame(() => {
+    const ctx = document.getElementById('mainChart');
+    if (!ctx) return;
+    if (historyChart) { historyChart.destroy(); historyChart = null; }
+
+    const datasets = FACETS.map(f => ({
+      label: `${f.icon} ${f.name}`,
+      data: checkins.map(c => c.scores[f.id]),
+      borderColor: FACET_COLORS[f.id],
+      backgroundColor: FACET_COLORS[f.id] + '15',
+      borderWidth: 2,
+      pointRadius: 4,
+      pointHoverRadius: 6,
+      pointBackgroundColor: FACET_COLORS[f.id],
+      tension: 0.4,
+      fill: false,
+    }));
+
+    historyChart = new Chart(ctx, {
+      type: 'line',
+      data: { labels, datasets },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: { font: { family: 'system-ui', size: 11 }, padding: 10, usePointStyle: true, boxWidth: 7 },
+          },
+          tooltip: {
+            bodyFont: { family: 'system-ui', size: 13 },
+            titleFont: { family: 'system-ui', weight: '600', size: 13 },
+            backgroundColor: 'rgba(36,36,38,0.9)',
+            padding: 10, cornerRadius: 10,
+            callbacks: { label: ctx => ` ${ctx.dataset.label}: ${ctx.raw}/10` }
+          }
+        },
+        scales: {
+          y: {
+            min: 0, max: 10,
+            ticks: { stepSize: 2, font: { family: 'system-ui', size: 11 } },
+            grid: { color: 'rgba(60,60,67,0.07)' },
+          },
+          x: {
+            ticks: { font: { family: 'system-ui', size: 11 } },
+            grid: { display: false },
+          }
+        }
+      }
+    });
+  });
+}
+
+// ════════════════════════════════════════════════
+//  EXPORT
+// ════════════════════════════════════════════════
+function renderExport() {
+  const el       = document.getElementById('export-content');
+  const checkins = getCheckins();
+  const noData   = checkins.length === 0;
+
+  el.innerHTML = `
+    <div class="large-title-wrap">
+      <div class="large-title">Data & <span class="brand">Export</span></div>
+      <div class="large-title-sub">Your data lives entirely in your browser.</div>
+    </div>
+
+    <div class="group-header">Actions</div>
+    <div class="group">
+      <div class="ios-card">
+        <div class="ios-row" onclick="${noData ? '' : 'exportJSON()'}" style="${noData ? 'opacity:0.35;pointer-events:none;' : 'cursor:pointer;'}">
+          <div class="ios-row-icon orange">📦</div>
+          <div class="ios-row-body">
+            <div class="ios-row-label">Download Backup</div>
+            <div class="ios-row-sub">Export all data as JSON</div>
+          </div>
+          <span class="ios-row-chevron">›</span>
+        </div>
+        <label class="ios-row" style="cursor:pointer;">
+          <div class="ios-row-icon blue">📂</div>
+          <div class="ios-row-body">
+            <div class="ios-row-label">Import from JSON</div>
+            <div class="ios-row-sub">Merges — never overwrites existing months</div>
+          </div>
+          <span class="ios-row-chevron">›</span>
+          <input type="file" accept=".json" onchange="importJSON(event)">
+        </label>
+      </div>
+    </div>
+
+    <div class="group-header">Storage</div>
+    <div class="group">
+      <div class="ios-card">
+        ${noData
+          ? `<div style="padding:14px 16px;font-size:15px;color:var(--label-2);">No data stored yet.</div>`
+          : `<div class="stat-row">
+              <span class="stat-num">${checkins.length}</span>
+              <span class="stat-lbl">check-in${checkins.length !== 1 ? 's' : ''} stored locally</span>
+            </div>
+            <div style="padding:2px 16px 14px;font-size:13px;color:var(--label-2);">
+              ${formatKey(checkins[0].id)} — ${formatKey(checkins[checkins.length - 1].id)}
+            </div>`}
+      </div>
+    </div>
+    <div class="group-footer">Data is saved in your browser's localStorage. Export regularly to keep a backup.</div>
+
+    <div class="group-header">Danger Zone</div>
+    <div class="group">
+      <div class="ios-card" style="padding:14px 16px;">
+        <button class="btn btn-danger" onclick="clearAllData()" ${noData ? 'disabled' : ''}>
+          Clear All Data
+        </button>
+      </div>
+    </div>
+    <div class="group-footer" style="margin-bottom:8px;">This permanently deletes all local Wellspring data and cannot be undone. Export a backup first.</div>
+  `;
+}
+
+function exportJSON() {
+  const data = loadData();
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = `wellspring-backup-${getCurrentKey()}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('✓ Backup downloaded');
+}
+
+function importJSON(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const imported = JSON.parse(e.target.result);
+      if (!imported.checkins || !Array.isArray(imported.checkins)) {
+        showToast('⚠ Invalid file format'); return;
+      }
+      const data = loadData();
+      let added = 0;
+      imported.checkins.forEach(c => {
+        if (!data.checkins.find(x => x.id === c.id)) { data.checkins.push(c); added++; }
+      });
+      if (imported.customTags) {
+        Object.keys(imported.customTags).forEach(facetId => {
+          if (!data.customTags[facetId]) data.customTags[facetId] = [];
+          imported.customTags[facetId].forEach(tag => {
+            if (!data.customTags[facetId].includes(tag)) data.customTags[facetId].push(tag);
+          });
+        });
+      }
+      data.checkins.sort((a, b) => a.id.localeCompare(b.id));
+      saveData(data);
+      showToast(`✓ Imported ${added} new check-in${added !== 1 ? 's' : ''}`);
+      renderExport();
+    } catch { showToast('⚠ Could not read file'); }
+  };
+  reader.readAsText(file);
+}
+
+function clearAllData() {
+  if (confirm('Delete all Wellspring data permanently?\n\nExport a backup first if you want to keep your history.')) {
+    localStorage.removeItem(STORAGE_KEY);
+    showToast('All data cleared');
+    showTab('dashboard');
+  }
+}
+
+// ════════════════════════════════════════════════
+//  BOOT
+// ════════════════════════════════════════════════
+renderDashboard();
+</script>
+</body>
+</html>
